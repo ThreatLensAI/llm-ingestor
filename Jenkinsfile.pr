@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    stages {
+        stage('pr validations') {
+            parallel {
+                stage('pr commit messages lint') {
+                    tools {
+                        nodejs "nodejs"
+                    }
+                    steps {
+                        sh '''
+                            export CHANGE_TARGET_COMMIT_ID=$(git rev-parse origin/$CHANGE_TARGET)
+                            npx commitlint \
+                                -x @commitlint/config-conventional \
+                                -f $CHANGE_TARGET_COMMIT_ID
+                        '''
+                    }
+                }
+
+                stage('helm lint') {
+                    steps {
+                        sh '''
+                            helm lint charts/llm-ingestor --strict
+                        '''
+                    }
+                }
+
+                stage('helm template') {
+                    steps {
+                        sh '''
+                            helm template charts/llm-ingestor
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}

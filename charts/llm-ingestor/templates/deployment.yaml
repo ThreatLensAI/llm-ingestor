@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "llm-ingestor.fullname" . }}-deployment
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+    {{- include "llm-ingestor.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "llm-ingestor.selectorLabels" . | nindent 6 }}
+      {{- with .Values.podLabels }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "llm-ingestor.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '{{ .Values.env.PORT | atoi }}'
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "llm-ingestor.serviceAccountName" . }}
+      restartPolicy: "Always"
+      imagePullSecrets:
+        - name: {{ include "llm-ingestor.fullname" . }}-secrets
+
+      initContainers:
+        {{- range .Values.initContainers }}
+        - name: {{ .name }}
+          image: "{{ .repository }}:{{ .tag | default "latest" }}"
+          imagePullPolicy: {{ .pullPolicy | default "Always" }}
+          command: {{ .command }}
+          args: {{ .args }}
+          envFrom:
+            - secretRef:
+                name: {{ include "llm-ingestor.fullname" $ }}-db-secrets
+          {{- with .resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+
+      {{- if .Values.affinity.enable }}
+      affinity:
+        {{- include "llm-ingestor.affinity" . | nindent 8 }}
+      {{- end }}
+
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+        envFrom:
+          - secretRef:
+              name: {{ include "llm-ingestor.fullname" . }}-consumer-secrets
+          - configMapRef:
+              name: {{ include "llm-ingestor.fullname" . }}-consumer-configmap
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        readinessProbe:
+          httpGet:
+            port: {{ .Values.env.PORT | atoi }}
+            path: {{ (.Values.pod.readinessProbe).path | default "/" | quote }}
+          failureThreshold: {{ (.Values.pod.readinessProbe).failureThreshold | default 6 }}
+          successThreshold: {{ (.Values.pod.readinessProbe).successThreshold | default 2 }}
+          periodSeconds: {{ (.Values.pod.readinessProbe).periodSeconds | default 10 }}
+        
+        livenessProbe:
+          httpGet:
+            port: {{ .Values.env.PORT | atoi }}
+            path: {{ (.Values.pod.livenessProbe).path | default "/" | quote }}
+          failureThreshold: {{ (.Values.pod.livenessProbe).failureThreshold | default 10 }}
+          successThreshold: {{ (.Values.pod.livenessProbe).successThreshold | default 1 }}
+          periodSeconds: {{ (.Values.pod.livenessProbe).periodSeconds | default 10 }}

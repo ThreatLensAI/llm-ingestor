@@ -1,0 +1,29 @@
+{
+    "plugins": [
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator",
+        [
+            "semantic-release-helm3",
+            {
+                "chartPath": "charts/llm-ingestor",
+                "onlyUpdateVersion": true
+            }
+        ],
+        [
+            "@semantic-release/exec",
+            {
+                "prepareCmd": "helm package charts/llm-ingestor --destination charts/llm-ingestor"
+            }
+        ],
+        [
+            "@semantic-release/github",
+            {
+                "assets": [
+                    {
+                        "path": "charts/llm-ingestor/*.tgz"
+                    }
+                ]
+            }
+        ]
+    ]
+}

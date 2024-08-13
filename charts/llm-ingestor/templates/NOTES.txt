@@ -1,0 +1,35 @@
+Thank you for installing {{ .Chart.Name }}.
+The Helm chart has been successfully deployed.
+
+Verifying the Deployment
+------------------------
+- To verify that the pod is running, use the following command:
+
+  kubectl get pods -n {{ .Release.Namespace }}
+
+- You should see pod(s) starting with the name {{ include "llm-ingestor.fullname" . }} in the Running state.
+
+Get Job Logs
+------------------------
+- To verify that the pod is running, use the following command:
+
+  kubectl logs pods/{{ include "llm-ingestor.fullname" . }}- -n {{ .Release.Namespace }}
+
+- You should see pod(s) starting with the name {{ include "llm-ingestor.fullname" . }} in the Running state.
+
+Uninstalling the Chart
+----------------------
+- To uninstall/delete the {{ .Release.Name }} deployment, use the following command:
+
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+- This will remove all the Kubernetes components associated with the chart and delete the release.
+
+
+Troubleshooting
+---------------
+- If the pod is not in the Running state, check the pod events:
+
+  kubectl describe pod -n {{ .Release.Namespace }} {{ include "llm-ingestor.fullname" . }}
+
+- Ensure that the DockerHub credentials are correctly set and that the image is available.

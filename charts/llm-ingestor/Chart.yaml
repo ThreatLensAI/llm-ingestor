@@ -1,0 +1,16 @@
+apiVersion: v2
+name: llm-ingestor
+description: Pipelines for llm data ingestion
+
+type: application
+
+version: 0.1.0
+appVersion: '1.16.0'
+
+home: https://github.com/csye7125-su24-team06/llm-ingestor
+
+maintainers:
+  - name: Parichay Didwania
+    email: didwania.pa@northeastern.edu
+  - name: Venkata Naga Sai Teja Marlapati
+    email: marlapati.v@northeastern.edu

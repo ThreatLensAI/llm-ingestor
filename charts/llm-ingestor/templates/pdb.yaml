@@ -1,0 +1,19 @@
+{{- if and .Values.pdb.create }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "llm-ingestor.fullname" . }}-pdb
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+  {{- include "llm-ingestor.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.pdb.minAvailable }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- end }}
+  {{- if or .Values.pdb.maxUnavailable (not .Values.pdb.minAvailable) }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels:
+    {{- include "llm-ingestor.selectorLabels" . | nindent 6 }}
+{{- end }}

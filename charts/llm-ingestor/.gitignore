@@ -1,0 +1,6 @@
+*.tgz
+.env
+values.override.yaml
+.prettierignore
+helm-apply.sh
+.prettierignore

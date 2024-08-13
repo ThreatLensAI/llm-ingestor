@@ -1,0 +1,7 @@
+pydantic==2.7.1
+llama-index
+llama-index-llms-ollama
+llama-index-embeddings-ollama
+llama-index-vector-stores-postgres
+llama-index-readers-json
+openai

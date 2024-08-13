@@ -1,0 +1,45 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "llm-ingestor.fullname" . }}-sa-role
+  namespace: '{{ .Release.Namespace }}'
+  labels:
+  {{- include "llm-ingestor.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  resourceNames:
+  - '{{ include "llm-ingestor.fullname" . }}-consumer-configmap'
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  resourceNames:
+  - '{{ include "llm-ingestor.fullname" . }}-consumer-secrets'
+  - '{{ include "llm-ingestor.fullname" . }}-db-secrets'
+  - '{{ include "llm-ingestor.fullname" . }}-secrets'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "llm-ingestor.fullname" . }}-sa-rolebinding
+  labels:
+  {{- include "llm-ingestor.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: '{{ include "llm-ingestor.fullname" . }}-sa-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "llm-ingestor.serviceAccountName" . }}'
+  namespace: '{{ .Release.Namespace }}'

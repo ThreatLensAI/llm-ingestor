@@ -1,0 +1,95 @@
+# Name override instead of fullname (llm-ingestor)
+nameOverride: 'llm-ingestor'
+
+# Docker Hub credentials secret
+secrets:
+  dockerhubconfigjson: ''
+
+env:
+  KAFKA_BROKERS: 'localhost:9092,localhost:9093,localhost:9094'
+  KAFKA_TOPIC: 'cve'
+  KAFKA_CONSUMER_GROUP_ID: 'llm-ingestor'
+  KAFKA_MAX_SIZE: '10e6'
+  PORT: '3001'
+
+initContainers:
+  - name: 'db-migrate'
+    repository: marlapativ/db-migration
+    tag: 'latest'
+    pullPolicy: Always
+    command: ['flyway']
+    args: ['migrate']
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 25Mi
+
+extraSecrets: {}
+
+pod:
+  readinessProbe:
+    path: /readiness
+  livenessProbe:
+    path: /liveness
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 384Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+podLabels: {}
+
+podAnnotations: {}
+
+serviceAccount:
+  create: true
+  name: 'llm-ingestor-sa'
+  automount: false
+  annotations: {}
+
+db:
+  secrets:
+    postgresUsername: ''
+    postgresPassword: ''
+    username: ''
+    password: ''
+    database: ''
+  config:
+    host: ''
+    port: '5432'
+
+kafka:
+  secrets:
+    username: ''
+    password: ''
+
+replicaCount: 3
+
+image:
+  repository: marlapativ/llm-ingestor
+  tag: 'latest'
+  pullPolicy: Always
+
+affinity:
+  enable: true
+  topologyKey: topology.kubernetes.io/zone
+
+pdb:
+  create: true
+  minAvailable: 2
+  maxUnavailable: {}
+
+autoscaling:
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 14
+    targetCPU: 75
+    targetMemory: 80
+    annotations: {}

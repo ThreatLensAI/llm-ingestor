@@ -6,11 +6,11 @@ secrets:
   dockerhubconfigjson: ''
 
 env:
-  KAFKA_BROKERS: 'localhost:9092,localhost:9093,localhost:9094'
+  KAFKA_SERVICE: 'localhost:9092'
   KAFKA_TOPIC: 'cve'
   KAFKA_CONSUMER_GROUP_ID: 'llm-ingestor'
-  KAFKA_MAX_SIZE: '10e6'
-  PORT: '3001'
+  KAFKA_MAX_SIZE: 10000000
+  PORT: 3001
 
 initContainers:
   - name: 'db-migrate'
@@ -31,9 +31,9 @@ extraSecrets: {}
 
 pod:
   readinessProbe:
-    path: /readiness
+    path: /healthz
   livenessProbe:
-    path: /liveness
+    path: /healthz
 
 resources:
   limits:
@@ -62,7 +62,8 @@ db:
     database: ''
   config:
     host: ''
-    port: '5432'
+    port: 5432
+    table: 'embeddings'
 
 kafka:
   secrets:

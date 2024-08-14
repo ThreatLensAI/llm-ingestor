@@ -72,8 +72,8 @@ pipeline {
                         docker buildx build \
                         --platform linux/amd64,linux/arm64 \
                         --builder multiarch \
-                        -t $imageName:latest \
-                        -t $imageName:$IMAGE_TAG \
+                        -t $imageRepo/$imageName:latest \
+                        -t $imageRepo/$imageName:$IMAGE_TAG \
                         -f ingestor/Dockerfile.llm-ingestor \
                         --push \
                         ingestor
@@ -89,8 +89,8 @@ pipeline {
                         docker buildx build \
                         --platform linux/amd64,linux/arm64 \
                         --builder multiarch \
-                        -t $pipelineImageName:latest \
-                        -t $pipelineImageName:$IMAGE_TAG \
+                        -t $imageRepo/$pipelineImageName:latest \
+                        -t $imageRepo/$pipelineImageName:$IMAGE_TAG \
                         -f pipelines/Dockerfile.pipelines \
                         --push \
                         pipelines

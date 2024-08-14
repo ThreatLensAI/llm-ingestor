@@ -22,7 +22,7 @@ class Pipeline:
         EMBEDDING_DIM: int
 
     def __init__(self):
-        self.name = "Ollama Pipeline"
+        self.name = "CVE Chatbot"
         self.index = None
         self.valves = self.Valves(
             **{

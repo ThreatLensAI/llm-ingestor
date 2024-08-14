@@ -36,7 +36,7 @@ class Ingestor:
                 "PGPASSWORD": os.getenv("DB_PASSWORD", "password"),
                 "PGDATABASE": os.getenv("DB_DATABASE", "cve"),
                 "PGTABLE": os.getenv("DB_TABLE", "embeddings"),
-                "PGPORT": os.getenv("DB_PORT", 5432),
+                "PGPORT": int(os.getenv("DB_PORT", '5432')),
             }
         )
 

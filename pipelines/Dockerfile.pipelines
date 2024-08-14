@@ -1,4 +1,4 @@
-FROM ghcr.io/open-webui/pipelines AS base
+FROM ghcr.io/open-webui/pipelines:main AS base
 
 COPY ./requirements.txt ./pipeline-requirements.txt
 

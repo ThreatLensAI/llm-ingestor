@@ -9,4 +9,3 @@ openai==1.40.3
 kafka-python==2.0.2
 python-dotenv==1.0.1
 python-json-logger==2.0.7
-Flask==3.0.3

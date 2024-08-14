@@ -10,7 +10,7 @@ def get_Kafka_consumer():
     consumer = KafkaConsumer(os.getenv('KAFKA_TOPIC', 'cve'),
                              group_id=os.getenv('KAFKA_CONSUMER_GROUP_ID', 'cve'),
                              bootstrap_servers=[os.getenv('KAFKA_SERVICE', 'localhost:9092')],
-                             fetch_max_bytes=os.getenv('KAFKA_MAX_SIZE', 10000000),
+                             fetch_max_bytes=int(os.getenv('KAFKA_MAX_SIZE', '10000000')),
                              security_protocol='SASL_PLAINTEXT',
                              sasl_mechanism='SCRAM-SHA-512',
                              sasl_plain_username=username,

@@ -41,7 +41,7 @@ embedder = Ingestor()
 signal.signal(signal.SIGINT, shutdown_signal_handler)
 signal.signal(signal.SIGTERM, shutdown_signal_handler)
 
-httpd = HTTPServer(('', os.getenv('PORT', 3001)), HealthCheckHandler)
+httpd = HTTPServer(('', int(os.getenv('PORT', '3001'))), HealthCheckHandler)
 executor = ThreadPoolExecutor(max_workers=1)
 
 logger.info("Starting health check server...")

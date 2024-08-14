@@ -9,8 +9,12 @@ env:
   KAFKA_SERVICE: 'localhost:9092'
   KAFKA_TOPIC: 'cve'
   KAFKA_CONSUMER_GROUP_ID: 'llm-ingestor'
-  KAFKA_MAX_SIZE: 10000000
-  PORT: 3001
+  KAFKA_MAX_SIZE: '10000000'
+  PORT: '3001'
+  LLAMAINDEX_OLLAMA_BASE_URL: 'http://localhost:11434'
+  LLAMAINDEX_MODEL_NAME: 'gemma:2b'
+  EMBEDDING_DIM: '1024'
+  LLAMAINDEX_EMBEDDING_MODEL_NAME:"mxbai-embed-large:latest"
 
 initContainers:
   - name: 'db-migrate'
@@ -62,7 +66,7 @@ db:
     database: ''
   config:
     host: ''
-    port: 5432
+    port: '5432'
     table: 'embeddings'
 
 kafka:

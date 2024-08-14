@@ -68,6 +68,7 @@ db:
     host: ''
     port: '5432'
     table: 'embeddings'
+    schema: 'cve'
 
 kafka:
   secrets:
@@ -87,14 +88,14 @@ affinity:
 
 pdb:
   create: true
-  minAvailable: 2
+  minAvailable: 1
   maxUnavailable: {}
 
 autoscaling:
   hpa:
     enabled: true
-    minReplicas: 2
-    maxReplicas: 14
-    targetCPU: 75
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPU: 5
     targetMemory: 80
     annotations: {}

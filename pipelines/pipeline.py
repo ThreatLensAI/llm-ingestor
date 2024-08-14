@@ -18,6 +18,7 @@ class Pipeline:
         PGUSER: str
         PGPASSWORD: str
         PGDATABASE: str
+        PGSCHEMA: str
         PGTABLE: str
         EMBEDDING_DIM: int
 
@@ -33,6 +34,7 @@ class Pipeline:
                 "PGHOST": os.getenv("DB_HOST", "localhost"),
                 "PGUSER": os.getenv("DB_USER", "postgres"),
                 "PGPASSWORD": os.getenv("DB_PASSWORD", "password"),
+                "PGSCHEMA": os.getenv("DB_SCHEMA", "cve"),
                 "PGDATABASE": os.getenv("DB_DATABASE", "cve"),
                 "PGTABLE": os.getenv("DB_TABLE", "embeddings"),
                 "PGPORT": int(os.getenv("DB_PORT", '5432')),
@@ -60,6 +62,7 @@ class Pipeline:
             password=self.valves.PGPASSWORD,
             port=self.valves.PGPORT,
             user=self.valves.PGUSER,
+            schema_name=self.valves.PGSCHEMA,
             table_name=self.valves.PGTABLE,
             embed_dim=self.valves.EMBEDDING_DIM,
             hnsw_kwargs={

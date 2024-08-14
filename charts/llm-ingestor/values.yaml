@@ -14,7 +14,7 @@ env:
   LLAMAINDEX_OLLAMA_BASE_URL: 'http://localhost:11434'
   LLAMAINDEX_MODEL_NAME: 'gemma:2b'
   EMBEDDING_DIM: '1024'
-  LLAMAINDEX_EMBEDDING_MODEL_NAME:"mxbai-embed-large:latest"
+  LLAMAINDEX_EMBEDDING_MODEL_NAME: 'mxbai-embed-large:latest'
 
 initContainers:
   - name: 'db-migrate'

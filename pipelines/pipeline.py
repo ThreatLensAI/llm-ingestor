@@ -1,14 +1,17 @@
+from typing import List, Union, Generator, Iterator
+from pydantic import BaseModel
 import os
-from pydantic import BaseModel, ConfigDict
 from llama_index.embeddings.ollama import OllamaEmbedding
-from llama_index.core import StorageContext, Document
+from llama_index.llms.ollama import Ollama
 from llama_index.core import Settings, VectorStoreIndex
+from llama_index.core.chat_engine.types import ChatMode
 from llama_index.vector_stores.postgres import PGVectorStore
-from json_parser import format_cve_data
+from llama_index.core.base.llms.types import ChatMessage
 
-class Ingestor:
+class Pipeline:
     class Valves(BaseModel):
         LLAMAINDEX_OLLAMA_BASE_URL: str
+        LLAMAINDEX_MODEL_NAME: str
         LLAMAINDEX_EMBEDDING_MODEL_NAME: str
         PGHOST: str
         PGPORT: int
@@ -17,18 +20,16 @@ class Ingestor:
         PGDATABASE: str
         PGTABLE: str
         EMBEDDING_DIM: int
-        model_config = ConfigDict(extra="allow")
 
     def __init__(self):
-        self.name = "Ollama Indexer"
+        self.name = "Ollama Pipeline"
         self.index = None
-        self.vector_store = None
-        self.storage_context = None
         self.valves = self.Valves(
             **{
                 "LLAMAINDEX_OLLAMA_BASE_URL": os.getenv("LLAMAINDEX_OLLAMA_BASE_URL", "http://localhost:11434"),
-                "EMBEDDING_DIM": int(os.getenv("EMBEDDING_DIM", "1024")),
+                "LLAMAINDEX_MODEL_NAME": os.getenv("LLAMAINDEX_MODEL_NAME", "gemma:2b"),
                 "LLAMAINDEX_EMBEDDING_MODEL_NAME": os.getenv("LLAMAINDEX_EMBEDDING_MODEL_NAME", "mxbai-embed-large:latest"),
+                "EMBEDDING_DIM": int(os.getenv("EMBEDDING_DIM", "1024")),
                 "PGHOST": os.getenv("DB_HOST", "localhost"),
                 "PGUSER": os.getenv("DB_USER", "postgres"),
                 "PGPASSWORD": os.getenv("DB_PASSWORD", "password"),
@@ -38,15 +39,22 @@ class Ingestor:
             }
         )
 
+    async def on_startup(self):
+        print(f"on_startup:{__name__}")
+
         Settings.embed_model = OllamaEmbedding(
             model_name=self.valves.LLAMAINDEX_EMBEDDING_MODEL_NAME,
+            base_url=self.valves.LLAMAINDEX_OLLAMA_BASE_URL,
+        )
+        Settings.llm = Ollama(
+            model=self.valves.LLAMAINDEX_MODEL_NAME,
             base_url=self.valves.LLAMAINDEX_OLLAMA_BASE_URL,
         )
 
         Settings.chunk_size = 12000
         Settings.chunk_overlap = 1000
 
-        self.vector_store = PGVectorStore.from_params(
+        vector_store = PGVectorStore.from_params(
             database=self.valves.PGDATABASE,
             host=self.valves.PGHOST,
             password=self.valves.PGPASSWORD,
@@ -62,17 +70,29 @@ class Ingestor:
             },
         )
 
-        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
+        global index
 
-    def createEmbedding(self, json_data):
-        data = format_cve_data(json_data)
-        document_obj = Document(
-            text=data
-        )
-        self.index = VectorStoreIndex.from_documents([document_obj], 
-            storage_context=self.storage_context,
-            show_progress=False
-        )   
+        self.index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
 
-    async def close(self):
-        await self.vector_store.close()
+    def pipe(
+        self, user_message: str, model_id: str, messages: List[dict], body: dict
+    ) -> Union[str, Generator, Iterator]:
+        print(f"pipe:{__name__}")
+        print(f"model_id:{model_id}")
+
+        if "user" in body:
+            print("######################################")
+            print(f'# User: {body["user"]["name"]} ({body["user"]["id"]})')
+            print(f"# Message: {user_message}")
+            print("######################################")
+        
+        chatMessages = []
+        for message in messages:
+            chatMessages.append(ChatMessage.from_str(content=message["content"], role=message["role"]))
+
+        query_engine = self.index.as_chat_engine(chat_mode=ChatMode.CONTEXT)
+        response = query_engine.stream_chat(user_message, chatMessages)
+
+        # print(response.print_response_stream())
+
+        return response.response_gen

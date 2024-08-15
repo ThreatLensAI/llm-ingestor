@@ -8,7 +8,7 @@ metadata:
 data:
   RELEASE_NAME: {{ .Release.Name }}
   DB_HOST: {{ include "llm-ingestor.database.hostname" . }}
-  DB_PORT: {{ .Values.db.config.port }}
+  DB_PORT: {{ .Values.db.config.port | atoi | quote }}
   DB_TABLE: {{ .Values.db.config.table }}
   DB_SCHEMA: {{ .Values.db.config.schema }}
   {{- toYaml .Values.env | nindent 2 }}

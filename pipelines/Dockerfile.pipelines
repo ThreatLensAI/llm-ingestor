@@ -6,3 +6,4 @@ RUN pip3 install uv
 RUN uv pip install --system -r pipeline-requirements.txt --no-cache-dir
 
 COPY ./pipeline.py ./pipelines/cve_pipeline.py
+COPY ./pipeline_advanced_query.py ./pipelines/cve_pipeline_advanced_query.py

@@ -27,8 +27,8 @@ class Ingestor:
         self.valves = self.Valves(
             **{
                 "LLAMAINDEX_OLLAMA_BASE_URL": os.getenv("LLAMAINDEX_OLLAMA_BASE_URL", "http://localhost:11434"),
-                "EMBEDDING_DIM": int(os.getenv("EMBEDDING_DIM", "1024")),
-                "LLAMAINDEX_EMBEDDING_MODEL_NAME": os.getenv("LLAMAINDEX_EMBEDDING_MODEL_NAME", "mxbai-embed-large:latest"),
+                "EMBEDDING_DIM": int(os.getenv("EMBEDDING_DIM", "768")),
+                "LLAMAINDEX_EMBEDDING_MODEL_NAME": os.getenv("LLAMAINDEX_EMBEDDING_MODEL_NAME", "nomic-embed-text:latest"),
                 "PGHOST": os.getenv("DB_HOST", "localhost"),
                 "PGUSER": os.getenv("DB_USER", "postgres"),
                 "PGPASSWORD": os.getenv("DB_PASSWORD", "password"),
@@ -44,8 +44,8 @@ class Ingestor:
             base_url=self.valves.LLAMAINDEX_OLLAMA_BASE_URL,
         )
 
-        Settings.chunk_size = 12000
-        Settings.chunk_overlap = 1000
+        Settings.chunk_size = 500
+        Settings.chunk_overlap = 250
 
         self.vector_store = PGVectorStore.from_params(
             database=self.valves.PGDATABASE,
@@ -56,6 +56,8 @@ class Ingestor:
             schema_name=self.valves.PGSCHEMA,
             table_name=self.valves.PGTABLE,
             embed_dim=self.valves.EMBEDDING_DIM,
+            hybrid_search=True,
+            text_search_config="english",
             hnsw_kwargs={
                 "hnsw_m": 16,
                 "hnsw_ef_construction": 64,

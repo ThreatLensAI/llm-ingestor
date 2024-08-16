@@ -1,3 +1,4 @@
+import logging
 from typing import List, Union, Generator, Iterator
 from pydantic import BaseModel
 import os
@@ -29,8 +30,8 @@ class Pipeline:
             **{
                 "LLAMAINDEX_OLLAMA_BASE_URL": os.getenv("LLAMAINDEX_OLLAMA_BASE_URL", "http://localhost:11434"),
                 "LLAMAINDEX_MODEL_NAME": os.getenv("LLAMAINDEX_MODEL_NAME", "gemma:2b"),
-                "LLAMAINDEX_EMBEDDING_MODEL_NAME": os.getenv("LLAMAINDEX_EMBEDDING_MODEL_NAME", "mxbai-embed-large:latest"),
-                "EMBEDDING_DIM": int(os.getenv("EMBEDDING_DIM", "1024")),
+                "LLAMAINDEX_EMBEDDING_MODEL_NAME": os.getenv("LLAMAINDEX_EMBEDDING_MODEL_NAME", "nomic-embed-text:latest"),
+                "EMBEDDING_DIM": int(os.getenv("EMBEDDING_DIM", "768")),
                 "PGHOST": os.getenv("DB_HOST", "localhost"),
                 "PGUSER": os.getenv("DB_USER", "postgres"),
                 "PGPASSWORD": os.getenv("DB_PASSWORD", "password"),
@@ -53,8 +54,8 @@ class Pipeline:
             base_url=self.valves.LLAMAINDEX_OLLAMA_BASE_URL,
         )
 
-        Settings.chunk_size = 12000
-        Settings.chunk_overlap = 1000
+        Settings.chunk_size = 500
+        Settings.chunk_overlap = 250
 
         vector_store = PGVectorStore.from_params(
             database=self.valves.PGDATABASE,
@@ -65,6 +66,8 @@ class Pipeline:
             schema_name=self.valves.PGSCHEMA,
             table_name=self.valves.PGTABLE,
             embed_dim=self.valves.EMBEDDING_DIM,
+            hybrid_search=True,
+            text_search_config="english",
             hnsw_kwargs={
                 "hnsw_m": 16,
                 "hnsw_ef_construction": 64,
@@ -74,8 +77,22 @@ class Pipeline:
         )
 
         global index
+        
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.propagate = True
+        root_logger.addHandler(logging.StreamHandler())
 
-        self.index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
+        hybrid_index = VectorStoreIndex.from_vector_store(
+            vector_store=vector_store
+        )
+
+        self.engine = hybrid_index.as_chat_engine(
+            vector_store_query_mode="hybrid",
+            chat_mode=ChatMode.CONTEXT,
+            sparse_top_k=5
+        )
+
 
     def pipe(
         self, user_message: str, model_id: str, messages: List[dict], body: dict
@@ -92,9 +109,8 @@ class Pipeline:
         chatMessages = []
         for message in messages:
             chatMessages.append(ChatMessage.from_str(content=message["content"], role=message["role"]))
-
-        query_engine = self.index.as_chat_engine(chat_mode=ChatMode.CONTEXT)
-        response = query_engine.stream_chat(user_message, chatMessages)
+        
+        response = self.engine.stream_chat(user_message, chatMessages)
 
         # print(response.print_response_stream())
 

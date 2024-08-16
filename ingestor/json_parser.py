@@ -59,11 +59,6 @@ def format_cve_data(cve_data):
                 )
             )
     
-    # Provider Metadata
-    provider_metadata = cna_container.get("providerMetadata", {})
-    org_id = provider_metadata.get("orgId", "N/A")
-    short_name = provider_metadata.get("shortName", "N/A")
-    
     # References
     references = cna_container.get("references", [])
     references_info = []
@@ -83,40 +78,28 @@ def format_cve_data(cve_data):
     )
     
     output = (
-        "CVE ID: {0}\n"
-        "Date Published: {1} | Last Updated: {2} | State: {3}\n\n"
-        "Title:\n"
-        "{4}\n\n"
-        "Descriptions:\n"
-        "{5}\n\n"
-        "Affected Products:\n"
-        "{6}\n\n"
-        "Impacts:\n"
-        "{7}\n\n"
-        "Metrics:\n"
-        "{8}\n\n"
-        "Problem Types:\n"
-        "{9}\n\n"
-        "Provider Metadata:\n"
-        "- Org ID: {10} | Short Name: {11}\n\n"
-        "References:\n"
-        "{12}\n\n"
-        "Source Information:\n"
-        "{13}"
+        "The cve id of this document is : {0}. This document is also known as {0}."
+        "{0} was published on {1} and was last Updated on {2}. The state of this cve {0} is {3}."
+        "The title of this cve {0} is {4}."
+        "The description of {0} cve is as follows: {5}.\n"
+        "These are the products affected by vulnerability of {0}: {6}."
+        "These are the impacts of this cve id {0}'s vulnerability: {7}."
+        "These are the metrics of this cve: {8}."
+        "These are the problem types of this cve: {9}."
+        "These are the references of this {0}'s vulnerability: {10}."
+        "This cve id {0} vulnerability's source is {11}."
     ).format(
         cve_id,
         date_published,
         date_updated,
         state,
         title,
-        "\n".join(description_texts),
-        "\n".join(affected_info),
-        "\n".join(impacts_info),
-        "\n".join(metrics_info),
-        "\n".join(problem_type_info),
-        org_id,
-        short_name,
-        "\n".join(references_info),
+        ",".join(description_texts),
+        ",".join(affected_info),
+        ",".join(impacts_info),
+        ",".join(metrics_info),
+        ",".join(problem_type_info),
+        ",".join(references_info),
         source_info
     )
     

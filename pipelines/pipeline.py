@@ -1,4 +1,3 @@
-import logging
 from typing import List, Union, Generator, Iterator
 from pydantic import BaseModel
 import os
@@ -77,11 +76,6 @@ class Pipeline:
         )
 
         global index
-        
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.DEBUG)
-        root_logger.propagate = True
-        root_logger.addHandler(logging.StreamHandler())
 
         hybrid_index = VectorStoreIndex.from_vector_store(
             vector_store=vector_store

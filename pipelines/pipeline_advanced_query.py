@@ -132,4 +132,4 @@ class Pipeline:
 
         # print(response)
 
-        return response.response_gen
+        return response

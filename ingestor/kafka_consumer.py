@@ -16,6 +16,7 @@ def get_Kafka_consumer():
                              sasl_plain_username=username,
                              sasl_plain_password=password,
                              enable_auto_commit=False,
+                             auto_offset_reset='earliest'
                              )
     return consumer
 
